@@ -5,26 +5,16 @@ namespace App\Controller;
 use App\Entity\WeatherData;
 use App\Form\WeatherType;
 use GuzzleHttp\Client;
-use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class WeatherController extends AbstractController
 {
     /**
-     * [Route('/weather', name: 'app_weather')]
-     */
-    public function index(): Response
-    {
-        return $this->render('weather/index.html.twig', [
-            'controller_name' => 'WeatherController',
-        ]);
-    }
-
-    /**
-     * @Route("/fetch-weather", name="fetch_weather")
+     * @Route("/", name="fetch_weather", methods={"GET", "POST"})
      */
     public function fetchWeatherAction(Request $request, EntityManagerInterface $em)
     {
@@ -32,8 +22,8 @@ class WeatherController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // code to fetch data from Open Meteo API and save to the database
-            $client = new Client();
+            // code to fetch data from Open-Meteo.com historical API and save to the database
+            $client = new Client(['verify' => false]);
 
             $latitude = number_format($form->get('latitude')->getData(), 2);
             $longitude = number_format($form->get('longitude')->getData(), 2);
@@ -52,31 +42,39 @@ class WeatherController extends AbstractController
             //status code 200 = success
             if ($response->getStatusCode() == 200) {
                 $data = json_decode($response->getBody(), true);
+//                file_put_contents('response_data.json', json_encode($data, JSON_PRETTY_PRINT));   // save json to file
 
                 if (isset($data['daily'])) {
-                    foreach ($data['daily'] as $dailyData) {
+                    $dates = $data['daily']['time'];
+                    $temperatureMin = $data['daily']['temperature_2m_min'];
+                    $temperatureMax = $data['daily']['temperature_2m_max'];
+                    $precipitation = $data['daily']['precipitation_sum'];
+
+                    $numDays = count($dates);
+
+                    for ($i = 0; $i < $numDays; $i++) {
                         $weatherData = new WeatherData();
                         $weatherData->setCity($form->get('city')->getData());
                         $weatherData->setLatitude($form->get('latitude')->getData());
                         $weatherData->setLongitude($form->get('longitude')->getData());
 
                         // Set the date
-                        if (isset($dailyData['time'])) {
-                            $date = new \DateTime('@' . $dailyData['time']);
+                        if (isset($dates[$i])) {
+                            $date = new \DateTime($dates[$i]);
                             $weatherData->setDate($date);
                         }
 
                         // Set temperature min and max
-                        if (isset($dailyData['temperature_2m_min'])) {
-                            $weatherData->setTemperatureMin($dailyData['temperature_2m_min']);
+                        if (isset($temperatureMin[$i])) {
+                            $weatherData->setTemperatureMin($temperatureMin[$i]);
                         }
-                        if (isset($dailyData['temperature_2m_max'])) {
-                            $weatherData->setTemperatureMax($dailyData['temperature_2m_max']);
+                        if (isset($temperatureMax[$i])) {
+                            $weatherData->setTemperatureMax($temperatureMax[$i]);
                         }
 
                         // Set precipitation
-                        if (isset($dailyData['precipitation_sum'])) {
-                            $weatherData->setPrecipitation($dailyData['precipitation_sum']);
+                        if (isset($precipitation[$i])) {
+                            $weatherData->setPrecipitation($precipitation[$i]);
                         }
 
                         $em->persist($weatherData);
@@ -89,6 +87,7 @@ class WeatherController extends AbstractController
         return $this->render('weather/index.html.twig', [
             'form' => $form->createView(),
         ]);
+
     }
 
 }
