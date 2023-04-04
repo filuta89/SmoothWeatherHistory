@@ -28,11 +28,11 @@ class WeatherType extends AbstractType
             ])
             ->add('latitude', NumberType::class, [
                 'label' => 'Latitude',
-                'scale' => 6,
+                'scale' => 2,
             ])
             ->add('longitude', NumberType::class, [
                 'label' => 'Longitude',
-                'scale' => 6,
+                'scale' => 2,
             ]);
     }
 
