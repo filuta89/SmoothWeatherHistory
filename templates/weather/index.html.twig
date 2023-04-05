@@ -1,25 +1,3 @@
-{#{% extends 'base.html.twig' %}#}
-
-{#{% block title %}Hello WeatherController!{% endblock %}#}
-
-{#{% block body %}#}
-{#    <style>#}
-{#        .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }#}
-{#        .example-wrapper code { background: #A5A5A5; padding: 2px 6px; }#}
-{#    </style>#}
-
-{#    <h1>Fetch Weather Data</h1>#}
-
-{#    {{ form_start(form) }}#}
-{#    {{ form_widget(form) }}#}
-{#    <button type="submit" class="btn btn-primary">Submit</button>#}
-{#    {{ form_end(form) }}#}
-
-{#    {% block javascripts %}#}
-{#        {{ parent() }}#}
-{#        <script src="{{ asset('js/autocomplete.js') }}"></script>#}
-{#    {% endblock %}#}
-{#{% endblock %}#}
 {% extends 'base.html.twig' %}
 
 {% block title %}Hello WeatherController!{% endblock %}
@@ -51,8 +29,47 @@
         <button type="submit" class="btn btn-primary">Submit</button>
     {{ form_end(form) }}
 
+    <div id="accordion">
+        {% include 'weather_data.html.twig' with {'weather_data': weather_data} %}
+    </div>
+
     {% block javascripts %}
         {{ parent() }}
         <script src="{{ asset('js/autocomplete.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const deleteButtons = document.querySelectorAll('.delete-weather-btn');
+
+                deleteButtons.forEach(function (button) {
+                    button.addEventListener('click', function (event) {
+                        event.preventDefault();
+
+                        if (confirm('Are you sure you want to delete this weather data?')) {
+                            const weatherIds = event.target.getAttribute('data-weather-ids');
+                            fetch('{{ path('delete_weather_data') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: new URLSearchParams({
+                                    'weather_ids': weatherIds
+                                })
+                            }).then(function (response) {
+                                if (response.status === 204) {
+                                    const card = event.target.closest('.card');
+                                    card.remove();
+                                } else {
+                                    alert('An error occurred while deleting the weather data.');
+                                }
+                            }).catch(function (error) {
+                                console.error('Error:', error);
+                                alert('An error occurred while deleting the weather data.');
+                            });
+                        }
+                    });
+                });
+            });
+        </script>
     {% endblock %}
 {% endblock %}

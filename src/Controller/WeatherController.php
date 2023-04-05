@@ -39,7 +39,6 @@ class WeatherController extends AbstractController
                 ]
             ]);
 
-            //status code 200 = success
             if ($response->getStatusCode() == 200) {
                 $data = json_decode($response->getBody(), true);
 //                file_put_contents('response_data.json', json_encode($data, JSON_PRETTY_PRINT));   // save json to file
@@ -58,21 +57,19 @@ class WeatherController extends AbstractController
                         $weatherData->setLatitude($form->get('latitude')->getData());
                         $weatherData->setLongitude($form->get('longitude')->getData());
 
-                        // Set the date
                         if (isset($dates[$i])) {
                             $date = new \DateTime($dates[$i]);
                             $weatherData->setDate($date);
                         }
 
-                        // Set temperature min and max
                         if (isset($temperatureMin[$i])) {
                             $weatherData->setTemperatureMin($temperatureMin[$i]);
                         }
+
                         if (isset($temperatureMax[$i])) {
                             $weatherData->setTemperatureMax($temperatureMax[$i]);
                         }
 
-                        // Set precipitation
                         if (isset($precipitation[$i])) {
                             $weatherData->setPrecipitation($precipitation[$i]);
                         }
@@ -82,12 +79,87 @@ class WeatherController extends AbstractController
                     $em->flush();
                 }
             }
+            $em->flush();
+            $weather_data = $this->getWeatherData($em);
+        } else {
+            $weather_data = $this->getWeatherData($em);
         }
 
         return $this->render('weather/index.html.twig', [
             'form' => $form->createView(),
+            'weather_data' => $weather_data,
         ]);
 
+    }
+
+    private function getWeatherData(EntityManagerInterface $em)
+    {
+        $weatherData = $em->getRepository(WeatherData::class)->findAll();
+
+        $data = [];
+
+        foreach ($weatherData as $weather) {
+            $dailyData = [
+                'id' => $weather->getId(),
+                'date' => $weather->getDate(),
+                'temperature_min' => $weather->getTemperatureMin(),
+                'temperature_max' => $weather->getTemperatureMax(),
+                'precipitation' => $weather->getPrecipitation(),
+            ];
+
+            $identifier = $weather->getCity() . $weather->getLatitude() . $weather->getLongitude();
+            if (!isset($data[$identifier])) {
+                $data[$identifier] = [
+                    'startDate' => $weather->getDate(),
+                    'endDate' => $weather->getDate(),
+                    'average_temperature' => 0,
+                    'total_precipitation' => 0,
+                    'count' => 0,
+                    'daily_data' => [],
+                ];
+            }
+
+            $data[$identifier]['daily_data'][] = $dailyData;
+            $data[$identifier]['average_temperature'] += ($dailyData['temperature_min'] + $dailyData['temperature_max']) / 2;
+            $data[$identifier]['total_precipitation'] += $dailyData['precipitation'];
+            $data[$identifier]['count']++;
+
+            if ($weather->getDate() < $data[$identifier]['startDate']) {
+                $data[$identifier]['startDate'] = $weather->getDate();
+            }
+            if ($weather->getDate() > $data[$identifier]['endDate']) {
+                $data[$identifier]['endDate'] = $weather->getDate();
+            }
+        }
+
+        foreach ($data as $key => $value) {
+            $data[$key]['average_temperature'] /= $value['count'];
+        }
+
+        return array_values($data);
+    }
+
+    /**
+     * @Route("/delete-weather-data", name="delete_weather_data", methods={"POST"})
+     */
+    public function deleteWeatherDataAction(Request $request, EntityManagerInterface $em): Response
+    {
+        $weatherIds = $request->request->get('weather_ids');
+
+        if ($weatherIds) {
+            $idsArray = explode(',', $weatherIds);
+            $weatherDataRepo = $em->getRepository(WeatherData::class);
+
+            foreach ($idsArray as $id) {
+                $weatherData = $weatherDataRepo->find($id);
+                if ($weatherData) {
+                    $em->remove($weatherData);
+                }
+            }
+            $em->flush();
+        }
+
+        return new Response('', Response::HTTP_NO_CONTENT);
     }
 
 }

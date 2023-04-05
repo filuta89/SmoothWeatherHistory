@@ -1,0 +1,41 @@
+{% for weather in weather_data %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#weather-{{ loop.index }}" aria-expanded="true" aria-controls="weather-{{ loop.index }}">
+                    Weather data for {{ weather.startDate|date('Y-m-d') }} to {{ weather.endDate|date('Y-m-d') }}
+                </button>
+                <button class="btn btn-danger delete-weather-btn" data-weather-ids="{{ weather.daily_data|map(d => d.id)|join(',') }}" type="button">Delete query</button>
+            </h5>
+        </div>
+        <div id="weather-{{ loop.index }}" class="collapse" aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#accordion">
+            <div class="card-body">
+                <p>Statistics:</p>
+                <ul>
+                    <li>Average temperature: {{ weather.average_temperature }}</li>
+                    <li>Total precipitation: {{ weather.total_precipitation }}</li>
+                </ul>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Temperature Min</th>
+                        <th>Temperature Max</th>
+                        <th>Precipitation</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for daily_data in weather.daily_data %}
+                        <tr>
+                            <td>{{ daily_data.date|date('Y-m-d') }}</td>
+                            <td>{{ daily_data.temperature_min }}</td>
+                            <td>{{ daily_data.temperature_max }}</td>
+                            <td>{{ daily_data.precipitation }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endfor %}
