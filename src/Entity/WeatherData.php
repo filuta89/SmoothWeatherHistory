@@ -20,6 +20,11 @@ class WeatherData
     /**
      * @ORM\Column(type="string", length=255)
      */
+    private $sessionId;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
     private $city;
 
     /**
@@ -66,6 +71,22 @@ class WeatherData
     public function setId($id): void
     {
         $this->id = $id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSessionId()
+    {
+        return $this->sessionId;
+    }
+
+    /**
+     * @param mixed $sessionId
+     */
+    public function setSessionId($sessionId): void
+    {
+        $this->sessionId = $sessionId;
     }
 
     /**

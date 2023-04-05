@@ -39,6 +39,26 @@ class WeatherDataRepository extends ServiceEntityRepository
         }
     }
 
+    public function findExpiredSessions(string $sessionSavePath): array
+    {
+        $queryBuilder = $this->createQueryBuilder('wd')
+            ->select('DISTINCT wd.sessionId')
+            ->getQuery();
+
+        $sessionIds = $queryBuilder->getResult();
+        $expiredSessionIds = [];
+
+        foreach ($sessionIds as $id) {
+            $sessionId = $id['sessionId'];
+            $sessionFilePath = $sessionSavePath . '/sess_' . $sessionId;
+
+            if (!file_exists($sessionFilePath)) {
+                $expiredSessionIds[] = $sessionId;
+            }
+        }
+
+        return $expiredSessionIds;
+    }
 //    /**
 //     * @return WeatherData[] Returns an array of WeatherData objects
 //     */

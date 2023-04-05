@@ -9,15 +9,26 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class WeatherController extends AbstractController
 {
+    private function initializeSession(SessionInterface $session): string
+    {
+        if (!$session->isStarted()) {
+            $session->start();
+        }
+        return $session->getId();
+    }
+
     /**
      * @Route("/", name="fetch_weather", methods={"GET", "POST"})
      */
-    public function fetchWeatherAction(Request $request, EntityManagerInterface $em)
+    public function fetchWeatherAction(Request $request, EntityManagerInterface $em, SessionInterface $session): Response
     {
+        $sessionId = $this->initializeSession($session);
+
         $form = $this->createForm(WeatherType::class);
         $form->handleRequest($request);
 
@@ -53,6 +64,7 @@ class WeatherController extends AbstractController
 
                     for ($i = 0; $i < $numDays; $i++) {
                         $weatherData = new WeatherData();
+                        $weatherData->setSessionId($sessionId);
                         $weatherData->setCity($form->get('city')->getData());
                         $weatherData->setLatitude($form->get('latitude')->getData());
                         $weatherData->setLongitude($form->get('longitude')->getData());
@@ -80,9 +92,9 @@ class WeatherController extends AbstractController
                 }
             }
             $em->flush();
-            $weather_data = $this->getWeatherData($em);
+            $weather_data = $this->getWeatherData($em, $sessionId);
         } else {
-            $weather_data = $this->getWeatherData($em);
+            $weather_data = $this->getWeatherData($em, $sessionId);
         }
 
         return $this->render('weather/index.html.twig', [
@@ -92,9 +104,9 @@ class WeatherController extends AbstractController
 
     }
 
-    private function getWeatherData(EntityManagerInterface $em)
+    private function getWeatherData(EntityManagerInterface $em, string $sessionId): array
     {
-        $weatherData = $em->getRepository(WeatherData::class)->findAll();
+        $weatherData = $em->getRepository(WeatherData::class)->findBy(['sessionId' => $sessionId]);
 
         $data = [];
 
@@ -156,6 +168,32 @@ class WeatherController extends AbstractController
                     $em->remove($weatherData);
                 }
             }
+            $em->flush();
+        }
+
+        return new Response('', Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * @Route("/delete-expired-session-data", name="delete_expired_session_data", methods={"GET"})
+     */
+    public function deleteExpiredSessionDataAction(EntityManagerInterface $em, SessionInterface $session): Response
+    {
+        $sessionSavePath = $session->getSavePath();
+        $weatherDataRepo = $em->getRepository(WeatherData::class);
+        $expiredSessionIds = $weatherDataRepo->findExpiredSessions($sessionSavePath);
+
+        if (!empty($expiredSessionIds)) {
+            foreach ($expiredSessionIds as $sessionId) {
+                $expiredWeatherData = $weatherDataRepo->findBy(['sessionId' => $sessionId]);
+
+                if ($expiredWeatherData) {
+                    foreach ($expiredWeatherData as $data) {
+                        $em->remove($data);
+                    }
+                }
+            }
+
             $em->flush();
         }
 
