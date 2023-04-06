@@ -58,6 +58,11 @@ class WeatherData
     private $precipitation;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $last_activity;
+
+    /**
      * @return mixed
      */
     public function getId()
@@ -201,6 +206,21 @@ class WeatherData
         $this->precipitation = $precipitation;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getLastActivity()
+    {
+        return $this->last_activity;
+    }
+
+    /**
+     * @param mixed $last_activity
+     */
+    public function setLastActivity($last_activity): void
+    {
+        $this->last_activity = $last_activity;
+    }
 
 
 }

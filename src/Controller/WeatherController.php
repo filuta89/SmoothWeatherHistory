@@ -11,13 +11,24 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Psr\Cache\CacheItemPoolInterface;
+
 
 class WeatherController extends AbstractController
 {
-    private function initializeSession(SessionInterface $session): string
+//    private $params;
+//
+//    public function __construct(ParameterBagInterface $params)
+//    {
+//        $this->params = $params;
+//    }
+
+    private function initializeSession(SessionInterface $session, EntityManagerInterface $em, CacheItemPoolInterface $cache): string
     {
         if (!$session->isStarted()) {
             $session->start();
+            $this->deleteExpiredSessionDataAction($em, $cache);
         }
         return $session->getId();
     }
@@ -25,9 +36,9 @@ class WeatherController extends AbstractController
     /**
      * @Route("/", name="fetch_weather", methods={"GET", "POST"})
      */
-    public function fetchWeatherAction(Request $request, EntityManagerInterface $em, SessionInterface $session): Response
+    public function fetchWeatherAction(Request $request, EntityManagerInterface $em, SessionInterface $session, CacheItemPoolInterface $cache): Response
     {
-        $sessionId = $this->initializeSession($session);
+        $sessionId = $this->initializeSession($session, $em, $cache);
 
         $form = $this->createForm(WeatherType::class);
         $form->handleRequest($request);
@@ -85,6 +96,8 @@ class WeatherController extends AbstractController
                         if (isset($precipitation[$i])) {
                             $weatherData->setPrecipitation($precipitation[$i]);
                         }
+
+                        $weatherData->setLastActivity(new \DateTime());
 
                         $em->persist($weatherData);
                     }
@@ -177,11 +190,11 @@ class WeatherController extends AbstractController
     /**
      * @Route("/delete-expired-session-data", name="delete_expired_session_data", methods={"GET"})
      */
-    public function deleteExpiredSessionDataAction(EntityManagerInterface $em, SessionInterface $session): Response
+    public function deleteExpiredSessionDataAction(EntityManagerInterface $em, CacheItemPoolInterface $cache): Response
     {
-        $sessionSavePath = $session->getSavePath();
+        //$sessionSavePath = $this->params->get('session.save_path');
         $weatherDataRepo = $em->getRepository(WeatherData::class);
-        $expiredSessionIds = $weatherDataRepo->findExpiredSessions($sessionSavePath);
+        $expiredSessionIds = $weatherDataRepo->findExpiredSessions($cache);
 
         if (!empty($expiredSessionIds)) {
             foreach ($expiredSessionIds as $sessionId) {

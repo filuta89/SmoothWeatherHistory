@@ -1,6 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello WeatherController!{% endblock %}
+{% block head %}
+    {% block stylesheets %}
+        {{ parent() }}
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    {% endblock %}
+    {% block title %}Hello WeatherController!{% endblock %}
+{% endblock %}
 
 {% block body %}
     <style>
@@ -36,8 +42,21 @@
     {% block javascripts %}
         {{ parent() }}
         <script src="{{ asset('js/autocomplete.js') }}"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                $("#{{ form.startDate.vars.id }}").datepicker({
+                    dateFormat: "dd/mm/yy",
+                    maxDate: "-6d"
+                });
+
+                $("#{{ form.endDate.vars.id }}").datepicker({
+                    dateFormat: "dd/mm/yy",
+                    maxDate: "-6d"
+                });
+
                 const deleteButtons = document.querySelectorAll('.delete-weather-btn');
 
                 deleteButtons.forEach(function (button) {

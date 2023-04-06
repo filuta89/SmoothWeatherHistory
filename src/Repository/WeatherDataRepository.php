@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\WeatherData;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * @extends ServiceEntityRepository<WeatherData>
@@ -39,10 +40,12 @@ class WeatherDataRepository extends ServiceEntityRepository
         }
     }
 
-    public function findExpiredSessions(string $sessionSavePath): array
+    public function findExpiredSessions(CacheItemPoolInterface $cache): array
     {
         $queryBuilder = $this->createQueryBuilder('wd')
             ->select('DISTINCT wd.sessionId')
+            ->where('wd.last_activity < :expirationTime')
+            ->setParameter('expirationTime', new \DateTime('-3600 seconds'))
             ->getQuery();
 
         $sessionIds = $queryBuilder->getResult();
@@ -50,15 +53,20 @@ class WeatherDataRepository extends ServiceEntityRepository
 
         foreach ($sessionIds as $id) {
             $sessionId = $id['sessionId'];
-            $sessionFilePath = $sessionSavePath . '/sess_' . $sessionId;
+            $cacheKey = 'session_' . $sessionId;
+            $cacheItem = $cache->getItem($cacheKey);
 
-            if (!file_exists($sessionFilePath)) {
+            if (!$cacheItem->isHit()) {
                 $expiredSessionIds[] = $sessionId;
             }
         }
 
+        // Print the list of expired session IDs to a file
+        file_put_contents('expired_sessions.log', implode(PHP_EOL, $expiredSessionIds));
+
         return $expiredSessionIds;
     }
+
 //    /**
 //     * @return WeatherData[] Returns an array of WeatherData objects
 //     */
