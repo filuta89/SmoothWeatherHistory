@@ -55,12 +55,76 @@ class WeatherData
     /**
      * @ORM\Column(type="float", nullable=true)
      */
+    private $temperature_mean;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
     private $precipitation;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $wind_speed_max;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $wind_gusts_max;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $last_activity;
+
+    /**
+     * @return mixed
+     */
+    public function getTemperatureMean()
+    {
+        return $this->temperature_mean;
+    }
+
+    /**
+     * @param mixed $temperature_mean
+     */
+    public function setTemperatureMean($temperature_mean): void
+    {
+        $this->temperature_mean = $temperature_mean;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWindSpeedMax()
+    {
+        return $this->wind_speed_max;
+    }
+
+    /**
+     * @param mixed $wind_speed_max
+     */
+    public function setWindSpeedMax($wind_speed_max): void
+    {
+        $this->wind_speed_max = $wind_speed_max;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWindGustsMax()
+    {
+        return $this->wind_gusts_max;
+    }
+
+    /**
+     * @param mixed $wind_gusts_max
+     */
+    public function setWindGustsMax($wind_gusts_max): void
+    {
+        $this->wind_gusts_max = $wind_gusts_max;
+    }
+
 
     /**
      * @return mixed

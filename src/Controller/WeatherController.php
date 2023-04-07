@@ -11,19 +11,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 
 class WeatherController extends AbstractController
 {
-//    private $params;
-//
-//    public function __construct(ParameterBagInterface $params)
-//    {
-//        $this->params = $params;
-//    }
-
     private function initializeSession(SessionInterface $session, EntityManagerInterface $em, CacheItemPoolInterface $cache): string
     {
         if (!$session->isStarted()) {
@@ -56,20 +48,23 @@ class WeatherController extends AbstractController
                     'longitude' => $longitude,
                     'start_date' => $form->get('startDate')->getData()->format('Y-m-d'),
                     'end_date' => $form->get('endDate')->getData()->format('Y-m-d'),
-                    'daily' => 'temperature_2m_max,temperature_2m_min,precipitation_sum',
+                    'daily' => 'temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,windspeed_10m_max,windgusts_10m_max',
                     'timezone' => 'Europe/Berlin'
                 ]
             ]);
 
             if ($response->getStatusCode() == 200) {
                 $data = json_decode($response->getBody(), true);
-//                file_put_contents('response_data.json', json_encode($data, JSON_PRETTY_PRINT));   // save json to file
+                file_put_contents('response_data.json', json_encode($data, JSON_PRETTY_PRINT));   // save json to file
 
                 if (isset($data['daily'])) {
                     $dates = $data['daily']['time'];
-                    $temperatureMin = $data['daily']['temperature_2m_min'];
                     $temperatureMax = $data['daily']['temperature_2m_max'];
+                    $temperatureMin = $data['daily']['temperature_2m_min'];
+                    $temperatureMean = $data['daily']['temperature_2m_mean'];
                     $precipitation = $data['daily']['precipitation_sum'];
+                    $windSpeedMax = $data['daily']['windspeed_10m_max'];
+                    $windGustsMax = $data['daily']['windgusts_10m_max'];
 
                     $numDays = count($dates);
 
@@ -93,8 +88,20 @@ class WeatherController extends AbstractController
                             $weatherData->setTemperatureMax($temperatureMax[$i]);
                         }
 
+                        if (isset($temperatureMean[$i])) {
+                            $weatherData->setTemperatureMean($temperatureMean[$i]);
+                        }
+
                         if (isset($precipitation[$i])) {
                             $weatherData->setPrecipitation($precipitation[$i]);
+                        }
+
+                        if (isset($windSpeedMax[$i])) {
+                            $weatherData->setWindSpeedMax($windSpeedMax[$i]);
+                        }
+
+                        if (isset($windGustsMax[$i])) {
+                            $weatherData->setWindGustsMax($windGustsMax[$i]);
                         }
 
                         $weatherData->setLastActivity(new \DateTime());
@@ -129,7 +136,10 @@ class WeatherController extends AbstractController
                 'date' => $weather->getDate(),
                 'temperature_min' => $weather->getTemperatureMin(),
                 'temperature_max' => $weather->getTemperatureMax(),
+                'temperature_mean' => $weather->getTemperatureMean(),
                 'precipitation' => $weather->getPrecipitation(),
+                'wind_speed_max' => $weather->getWindSpeedMax(),
+                'wind_gusts_max' => $weather->getWindGustsMax(),
             ];
 
             $identifier = $weather->getCity() . $weather->getLatitude() . $weather->getLongitude();
@@ -192,7 +202,6 @@ class WeatherController extends AbstractController
      */
     public function deleteExpiredSessionDataAction(EntityManagerInterface $em, CacheItemPoolInterface $cache): Response
     {
-        //$sessionSavePath = $this->params->get('session.save_path');
         $weatherDataRepo = $em->getRepository(WeatherData::class);
         $expiredSessionIds = $weatherDataRepo->findExpiredSessions($cache);
 
