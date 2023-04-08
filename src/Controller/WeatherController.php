@@ -2,25 +2,25 @@
 
 namespace App\Controller;
 
+use App\Entity\ResponseCommonData;
 use App\Entity\WeatherData;
 use App\Form\WeatherType;
 use GuzzleHttp\Client;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\Types\Integer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Psr\Cache\CacheItemPoolInterface;
-
 
 class WeatherController extends AbstractController
 {
-    private function initializeSession(SessionInterface $session, EntityManagerInterface $em, CacheItemPoolInterface $cache): string
+    private function initializeSession(SessionInterface $session, EntityManagerInterface $em): string
     {
         if (!$session->isStarted()) {
             $session->start();
-            $this->deleteExpiredSessionDataAction($em, $cache);
+            $this->deleteExpiredResponsesAction($em);
         }
         return $session->getId();
     }
@@ -28,9 +28,10 @@ class WeatherController extends AbstractController
     /**
      * @Route("/", name="fetch_weather", methods={"GET", "POST"})
      */
-    public function fetchWeatherAction(Request $request, EntityManagerInterface $em, SessionInterface $session, CacheItemPoolInterface $cache): Response
+    public function fetchWeatherAction(Request $request, EntityManagerInterface $em, SessionInterface $session): Response
     {
-        $sessionId = $this->initializeSession($session, $em, $cache);
+        $sessionId = $this->initializeSession($session, $em);
+        $responseId = 0;
 
         $form = $this->createForm(WeatherType::class);
         $form->handleRequest($request);
@@ -55,7 +56,7 @@ class WeatherController extends AbstractController
 
             if ($response->getStatusCode() == 200) {
                 $data = json_decode($response->getBody(), true);
-                file_put_contents('response_data.json', json_encode($data, JSON_PRETTY_PRINT));   // save json to file
+                //file_put_contents('response_data.json', json_encode($data, JSON_PRETTY_PRINT));   // save json to file
 
                 if (isset($data['daily'])) {
                     $dates = $data['daily']['time'];
@@ -66,14 +67,23 @@ class WeatherController extends AbstractController
                     $windSpeedMax = $data['daily']['windspeed_10m_max'];
                     $windGustsMax = $data['daily']['windgusts_10m_max'];
 
+                    $responseCommonData = new ResponseCommonData();
+                    $responseCommonData->setSessionId($sessionId);
+                    $responseCommonData->setCity($form->get('city')->getData());
+                    $responseCommonData->setLatitude($form->get('latitude')->getData());
+                    $responseCommonData->setLongitude($form->get('longitude')->getData());
+                    $responseCommonData->setLastActivity(new \DateTime());
+
+                    $em->persist($responseCommonData);
+                    $em->flush();
+
+                    $responseId = $responseCommonData->getId();
+
                     $numDays = count($dates);
 
                     for ($i = 0; $i < $numDays; $i++) {
                         $weatherData = new WeatherData();
-                        $weatherData->setSessionId($sessionId);
-                        $weatherData->setCity($form->get('city')->getData());
-                        $weatherData->setLatitude($form->get('latitude')->getData());
-                        $weatherData->setLongitude($form->get('longitude')->getData());
+                        $weatherData->setResponseId($responseId);
 
                         if (isset($dates[$i])) {
                             $date = new \DateTime($dates[$i]);
@@ -104,7 +114,6 @@ class WeatherController extends AbstractController
                             $weatherData->setWindGustsMax($windGustsMax[$i]);
                         }
 
-                        $weatherData->setLastActivity(new \DateTime());
 
                         $em->persist($weatherData);
                     }
@@ -112,27 +121,28 @@ class WeatherController extends AbstractController
                 }
             }
             $em->flush();
-            $weather_data = $this->getWeatherData($em, $sessionId);
+            $weather_data = $this->getWeatherData($em, $responseId);
         } else {
-            $weather_data = $this->getWeatherData($em, $sessionId);
+            $weather_data = $this->getWeatherData($em, $responseId);
         }
 
         return $this->render('weather/index.html.twig', [
             'form' => $form->createView(),
             'weather_data' => $weather_data,
+            'response_id' => $responseId,
         ]);
 
     }
 
-    private function getWeatherData(EntityManagerInterface $em, string $sessionId): array
+    private function getWeatherData(EntityManagerInterface $em, int $responseId): array
     {
-        $weatherData = $em->getRepository(WeatherData::class)->findBy(['sessionId' => $sessionId]);
+        $weatherData = $em->getRepository(WeatherData::class)->findBy(['responseId' => $responseId]);
 
         $data = [];
 
         foreach ($weatherData as $weather) {
             $dailyData = [
-                'id' => $weather->getId(),
+                //'id' => $weather->getId(),
                 'date' => $weather->getDate(),
                 'temperature_min' => $weather->getTemperatureMin(),
                 'temperature_max' => $weather->getTemperatureMax(),
@@ -142,7 +152,7 @@ class WeatherController extends AbstractController
                 'wind_gusts_max' => $weather->getWindGustsMax(),
             ];
 
-            $identifier = $weather->getCity() . $weather->getLatitude() . $weather->getLongitude();
+            $identifier = $weather->getResponseId();
             if (!isset($data[$identifier])) {
                 $data[$identifier] = [
                     'startDate' => $weather->getDate(),
@@ -154,6 +164,7 @@ class WeatherController extends AbstractController
                 ];
             }
 
+            $data[$identifier]['response_id'] = $responseId;
             $data[$identifier]['daily_data'][] = $dailyData;
             $data[$identifier]['average_temperature'] += ($dailyData['temperature_min'] + $dailyData['temperature_max']) / 2;
             $data[$identifier]['total_precipitation'] += $dailyData['precipitation'];
@@ -179,35 +190,32 @@ class WeatherController extends AbstractController
      */
     public function deleteWeatherDataAction(Request $request, EntityManagerInterface $em): Response
     {
-        $weatherIds = $request->request->get('weather_ids');
+        $responseId = $request->request->get('response_id');
 
-        if ($weatherIds) {
-            $idsArray = explode(',', $weatherIds);
+        if ($responseId) {
             $weatherDataRepo = $em->getRepository(WeatherData::class);
+            $weatherDataList = $weatherDataRepo->findBy(['response_id' => (int)$responseId]);
 
-            foreach ($idsArray as $id) {
-                $weatherData = $weatherDataRepo->find($id);
-                if ($weatherData) {
-                    $em->remove($weatherData);
-                }
+            foreach ($weatherDataList as $weatherData) {
+                $em->remove($weatherData);
             }
             $em->flush();
         }
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }
-
     /**
      * @Route("/delete-expired-session-data", name="delete_expired_session_data", methods={"GET"})
      */
-    public function deleteExpiredSessionDataAction(EntityManagerInterface $em, CacheItemPoolInterface $cache): Response
+    public function deleteExpiredResponsesAction(EntityManagerInterface $em): Response
     {
+        $responseCommonDataRepo = $em->getRepository(ResponseCommonData::class);
         $weatherDataRepo = $em->getRepository(WeatherData::class);
-        $expiredSessionIds = $weatherDataRepo->findExpiredSessions($cache);
+        $expiredResponsesIds = $responseCommonDataRepo->findExpiredSessions();
 
-        if (!empty($expiredSessionIds)) {
-            foreach ($expiredSessionIds as $sessionId) {
-                $expiredWeatherData = $weatherDataRepo->findBy(['sessionId' => $sessionId]);
+        if (!empty($expiredResponsesIds)) {
+            foreach ($expiredResponsesIds as $responseId) {
+                $expiredWeatherData = $weatherDataRepo->findBy(['responseId' => $responseId]);
 
                 if ($expiredWeatherData) {
                     foreach ($expiredWeatherData as $data) {

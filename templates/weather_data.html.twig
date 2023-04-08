@@ -5,7 +5,7 @@
                 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#weather-{{ loop.index }}" aria-expanded="true" aria-controls="weather-{{ loop.index }}">
                     Weather data for {{ weather.startDate|date('Y-m-d') }} to {{ weather.endDate|date('Y-m-d') }}
                 </button>
-                <button class="btn btn-danger delete-weather-btn" data-weather-ids="{{ weather.daily_data|map(d => d.id)|join(',') }}" type="button">Delete</button>
+                <button class="btn btn-danger delete-weather-btn" response-id="{{ response_id }}" type="button">Delete</button>
             </h5>
         </div>
         <div id="weather-{{ loop.index }}" class="collapse" aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#accordion">
@@ -21,10 +21,10 @@
                         <th>Date</th>
                         <th>Average Temp(°C)</th>
                         <th>Min Temp(°C)</th>
-                        <th>Temperature Max(°C)</th>
+                        <th>Max Temp(°C)</th>
                         <th>Precipitation (mm)</th>
-                        <th>Wind Speed Max (km/h)</th>
-                        <th>Wind Gusts Max (km/h)</th>
+                        <th>Max Wind Speed (km/h)</th>
+                        <th>Max Wind Gusts (km/h)</th>
                     </tr>
                     </thead>
                     <tbody>

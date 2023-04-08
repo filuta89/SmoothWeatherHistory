@@ -18,24 +18,9 @@ class WeatherData
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private $sessionId;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $city;
-
-    /**
-     * @ORM\Column(type="float")
-     */
-    private $latitude;
-
-    /**
-     * @ORM\Column(type="float")
-     */
-    private $longitude;
+    private $responseId;
 
     /**
      * @ORM\Column(type="date", nullable=true)
@@ -73,60 +58,6 @@ class WeatherData
     private $wind_gusts_max;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $last_activity;
-
-    /**
-     * @return mixed
-     */
-    public function getTemperatureMean()
-    {
-        return $this->temperature_mean;
-    }
-
-    /**
-     * @param mixed $temperature_mean
-     */
-    public function setTemperatureMean($temperature_mean): void
-    {
-        $this->temperature_mean = $temperature_mean;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getWindSpeedMax()
-    {
-        return $this->wind_speed_max;
-    }
-
-    /**
-     * @param mixed $wind_speed_max
-     */
-    public function setWindSpeedMax($wind_speed_max): void
-    {
-        $this->wind_speed_max = $wind_speed_max;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getWindGustsMax()
-    {
-        return $this->wind_gusts_max;
-    }
-
-    /**
-     * @param mixed $wind_gusts_max
-     */
-    public function setWindGustsMax($wind_gusts_max): void
-    {
-        $this->wind_gusts_max = $wind_gusts_max;
-    }
-
-
-    /**
      * @return mixed
      */
     public function getId()
@@ -145,65 +76,17 @@ class WeatherData
     /**
      * @return mixed
      */
-    public function getSessionId()
+    public function getResponseId()
     {
-        return $this->sessionId;
+        return $this->responseId;
     }
 
     /**
-     * @param mixed $sessionId
+     * @param mixed $responseId
      */
-    public function setSessionId($sessionId): void
+    public function setResponseId($responseId): void
     {
-        $this->sessionId = $sessionId;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCity()
-    {
-        return $this->city;
-    }
-
-    /**
-     * @param mixed $city
-     */
-    public function setCity($city): void
-    {
-        $this->city = $city;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getLatitude()
-    {
-        return $this->latitude;
-    }
-
-    /**
-     * @param mixed $latitude
-     */
-    public function setLatitude($latitude): void
-    {
-        $this->latitude = $latitude;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getLongitude()
-    {
-        return $this->longitude;
-    }
-
-    /**
-     * @param mixed $longitude
-     */
-    public function setLongitude($longitude): void
-    {
-        $this->longitude = $longitude;
+        $this->responseId = $responseId;
     }
 
     /**
@@ -257,6 +140,22 @@ class WeatherData
     /**
      * @return mixed
      */
+    public function getTemperatureMean()
+    {
+        return $this->temperature_mean;
+    }
+
+    /**
+     * @param mixed $temperature_mean
+     */
+    public function setTemperatureMean($temperature_mean): void
+    {
+        $this->temperature_mean = $temperature_mean;
+    }
+
+    /**
+     * @return mixed
+     */
     public function getPrecipitation()
     {
         return $this->precipitation;
@@ -273,17 +172,33 @@ class WeatherData
     /**
      * @return mixed
      */
-    public function getLastActivity()
+    public function getWindSpeedMax()
     {
-        return $this->last_activity;
+        return $this->wind_speed_max;
     }
 
     /**
-     * @param mixed $last_activity
+     * @param mixed $wind_speed_max
      */
-    public function setLastActivity($last_activity): void
+    public function setWindSpeedMax($wind_speed_max): void
     {
-        $this->last_activity = $last_activity;
+        $this->wind_speed_max = $wind_speed_max;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWindGustsMax()
+    {
+        return $this->wind_gusts_max;
+    }
+
+    /**
+     * @param mixed $wind_gusts_max
+     */
+    public function setWindGustsMax($wind_gusts_max): void
+    {
+        $this->wind_gusts_max = $wind_gusts_max;
     }
 
 

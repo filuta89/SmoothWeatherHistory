@@ -64,7 +64,7 @@
                         event.preventDefault();
 
                         if (confirm('Are you sure you want to delete this weather data?')) {
-                            const weatherIds = event.target.getAttribute('data-weather-ids');
+                            const responseId = event.target.getAttribute('response-id');
                             fetch('{{ path('delete_weather_data') }}', {
                                 method: 'POST',
                                 headers: {
@@ -72,7 +72,7 @@
                                     'X-Requested-With': 'XMLHttpRequest'
                                 },
                                 body: new URLSearchParams({
-                                    'weather_ids': weatherIds
+                                    'response_id': responseId
                                 })
                             }).then(function (response) {
                                 if (response.status === 204) {

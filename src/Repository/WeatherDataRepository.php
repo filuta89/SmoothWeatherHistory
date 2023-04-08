@@ -40,7 +40,7 @@ class WeatherDataRepository extends ServiceEntityRepository
         }
     }
 
-    public function findExpiredSessions(CacheItemPoolInterface $cache): array
+/*    public function findExpiredSessions(CacheItemPoolInterface $cache): array
     {
         $queryBuilder = $this->createQueryBuilder('wd')
             ->select('DISTINCT wd.sessionId')
@@ -62,10 +62,10 @@ class WeatherDataRepository extends ServiceEntityRepository
         }
 
         // Print the list of expired session IDs to a file
-        file_put_contents('expired_sessions.log', implode(PHP_EOL, $expiredSessionIds));
+        //file_put_contents('expired_sessions.log', implode(PHP_EOL, $expiredSessionIds));
 
         return $expiredSessionIds;
-    }
+    }*/
 
 //    /**
 //     * @return WeatherData[] Returns an array of WeatherData objects
