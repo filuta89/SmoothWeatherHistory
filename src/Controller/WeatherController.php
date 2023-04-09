@@ -121,9 +121,20 @@ class WeatherController extends AbstractController
                 }
             }
             $em->flush();
-            $weather_data = $this->getWeatherData($em, $responseId);
+
+            $responseIds = $em->getRepository(ResponseCommonData::class)->findBy(['sessionId' => $sessionId], ['id' => 'DESC']);
+
+            $weather_data = [];
+            foreach ($responseIds as $responseIdEntity) {
+                $weather_data[] = $this->getWeatherData($em, $responseIdEntity->getId());
+            }
         } else {
-            $weather_data = $this->getWeatherData($em, $responseId);
+            $responseIds = $em->getRepository(ResponseCommonData::class)->findBy(['sessionId' => $sessionId], ['id' => 'DESC']);
+
+            $weather_data = [];
+            foreach ($responseIds as $responseIdEntity) {
+                $weather_data[] = $this->getWeatherData($em, $responseIdEntity->getId());
+            }
         }
 
         return $this->render('weather/index.html.twig', [

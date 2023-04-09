@@ -36,9 +36,10 @@
     {{ form_end(form) }}
 
     <div id="accordion">
-        {% include 'weather_data.html.twig' with {'weather_data': weather_data} %}
+        {% for weather_data_instance in weather_data %}
+            {% include 'weather_data.html.twig' with {'weather_data': weather_data_instance, 'index': loop.index} %}
+        {% endfor %}
     </div>
-
     {% block javascripts %}
         {{ parent() }}
         <script src="{{ asset('js/autocomplete.js') }}"></script>
