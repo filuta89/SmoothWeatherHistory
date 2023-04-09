@@ -148,16 +148,18 @@ class WeatherController extends AbstractController
     private function getWeatherData(EntityManagerInterface $em, int $responseId): array
     {
         $weatherData = $em->getRepository(WeatherData::class)->findBy(['responseId' => $responseId]);
+        $responseCommonData = $em->getRepository(ResponseCommonData::class)->find($responseId);
+
+        $city = $responseCommonData ? strstr($responseCommonData->getCity(), ',', true) : null;
 
         $data = [];
 
         foreach ($weatherData as $weather) {
             $dailyData = [
-                //'id' => $weather->getId(),
                 'date' => $weather->getDate(),
                 'temperature_min' => $weather->getTemperatureMin(),
                 'temperature_max' => $weather->getTemperatureMax(),
-                'temperature_mean' => $weather->getTemperatureMean(),
+                'temperature_avg' => $weather->getTemperatureMean(),
                 'precipitation' => $weather->getPrecipitation(),
                 'wind_speed_max' => $weather->getWindSpeedMax(),
                 'wind_gusts_max' => $weather->getWindGustsMax(),
@@ -166,9 +168,10 @@ class WeatherController extends AbstractController
             $identifier = $weather->getResponseId();
             if (!isset($data[$identifier])) {
                 $data[$identifier] = [
+                    'city' => $city,
                     'startDate' => $weather->getDate(),
                     'endDate' => $weather->getDate(),
-                    'average_temperature' => 0,
+                    'total_avg_temp' => 0,
                     'total_precipitation' => 0,
                     'count' => 0,
                     'daily_data' => [],
@@ -177,7 +180,7 @@ class WeatherController extends AbstractController
 
             $data[$identifier]['response_id'] = $responseId;
             $data[$identifier]['daily_data'][] = $dailyData;
-            $data[$identifier]['average_temperature'] += ($dailyData['temperature_min'] + $dailyData['temperature_max']) / 2;
+            $data[$identifier]['total_avg_temp'] += ($dailyData['temperature_avg']);
             $data[$identifier]['total_precipitation'] += $dailyData['precipitation'];
             $data[$identifier]['count']++;
 
@@ -190,7 +193,8 @@ class WeatherController extends AbstractController
         }
 
         foreach ($data as $key => $value) {
-            $data[$key]['average_temperature'] /= $value['count'];
+            $data[$key]['total_avg_temp'] /= $value['count'];
+            $data[$key]['total_avg_temp'] = round($data[$key]['total_avg_temp'], 2);
         }
 
         return array_values($data);

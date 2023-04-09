@@ -23,19 +23,21 @@ class ResponseCommonDataRepository extends ServiceEntityRepository
 
     public function save(ResponseCommonData $entity, bool $flush = false): void
     {
-        $this->getEntityManager()->persist($entity);
+        $em = $this->getEntityManager();
+        $em->persist($entity);
 
         if ($flush) {
-            $this->getEntityManager()->flush();
+            $em->flush();
         }
     }
 
     public function remove(ResponseCommonData $entity, bool $flush = false): void
     {
-        $this->getEntityManager()->remove($entity);
+        $em = $this->getEntityManager();
+        $em->remove($entity);
 
         if ($flush) {
-            $this->getEntityManager()->flush();
+            $em->flush();
         }
     }
 
@@ -47,33 +49,6 @@ class ResponseCommonDataRepository extends ServiceEntityRepository
             ->setParameter('expirationTime', new \DateTime('-3600 seconds'))
             ->getQuery();
 
-        $expiredResponsesIds = $queryBuilder->getResult();
-
-        return $expiredResponsesIds;
+        return $queryBuilder->getResult();
     }
-
-//    /**
-//     * @return ResponseCommonData[] Returns an array of ResponseCommonData objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('w.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?ResponseCommonData
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }
