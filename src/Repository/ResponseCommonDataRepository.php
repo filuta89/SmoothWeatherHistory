@@ -41,14 +41,26 @@ class ResponseCommonDataRepository extends ServiceEntityRepository
         }
     }
 
-    public function findExpiredSessions(): array
+    public function findActiveResponseIds(): array
     {
-        $queryBuilder = $this->createQueryBuilder('rcd')
-            ->select('DISTINCT rcd.sessionId')
-            ->where('rcd.last_activity < :expirationTime')
-            ->setParameter('expirationTime', new \DateTime('-3600 seconds'))
-            ->getQuery();
+        $entityManager = $this->getEntityManager();
 
-        return $queryBuilder->getResult();
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('rcd.id')
+            ->from(ResponseCommonData::class, 'rcd')
+            ->where('rcd.sessionId IN (
+                SELECT DISTINCT rcd1.sessionId
+                FROM ' . ResponseCommonData::class . ' rcd1
+                WHERE rcd1.last_activity >= :expirationTime
+            )')
+            ->setParameter('expirationTime', new \DateTime('-3600 seconds'));
+
+        $results = array_column($queryBuilder->getQuery()->getResult(), 'id');
+
+//        // Save query results to a file in the root directory
+//        $filePath = 'C:\Users\01\PhpstormProjects\SmoothWeatherHistory\public\active_response_ids.txt';
+//        file_put_contents($filePath, implode(',', $results));
+
+        return array_column($queryBuilder->getQuery()->getResult(), 'id');
     }
 }
