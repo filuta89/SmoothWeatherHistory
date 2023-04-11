@@ -55,12 +55,6 @@ class ResponseCommonDataRepository extends ServiceEntityRepository
             )')
             ->setParameter('expirationTime', new \DateTime('-3600 seconds'));
 
-        $results = array_column($queryBuilder->getQuery()->getResult(), 'id');
-
-//        // Save query results to a file in the root directory
-//        $filePath = 'C:\Users\01\PhpstormProjects\SmoothWeatherHistory\public\active_response_ids.txt';
-//        file_put_contents($filePath, implode(',', $results));
-
         return array_column($queryBuilder->getQuery()->getResult(), 'id');
     }
 }

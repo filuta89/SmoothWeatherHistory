@@ -3,8 +3,8 @@
         <div class="card mb-3">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#weather-{{ index }}" aria-expanded="true" aria-controls="weather-{{ index }}">
-                        {{ weather.city }}: {{ weather.startDate|date('Y-m-d') }} to {{ weather.endDate|date('Y-m-d') }} - Average temperature: <strong>{{ weather.total_avg_temp }}°C</strong>, Total precipitation: <strong>{{ weather.total_precipitation }} mm</strong>
+                    <button class="btn btn-primary" title="{{ weather.city_full_name }}" data-bs-toggle="collapse" data-bs-target="#weather-{{ index }}" aria-expanded="true" aria-controls="weather-{{ index }}">
+                        {{ weather.city }}: {{ weather.startDate|date('Y-m-d') }} to {{ weather.endDate|date('Y-m-d') }} - Temperature: Avg: <strong>{{ weather.temp_avg_total }}°C</strong>, Max: <strong>{{ weather.temp_max_total }}°C</strong>, Min: <strong>{{ weather.temp_min_total }}°C</strong>, Total precipitation: <strong>{{ weather.precipitation_total }} mm</strong>
                     </button>
                     <button class="btn btn-danger delete-weather-btn" data-response-id="{{ response_id }}" type="button">Delete</button>
                 </h5>

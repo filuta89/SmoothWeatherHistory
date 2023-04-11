@@ -11,6 +11,12 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+        <style>
+            body {
+                max-width: 1200px;
+                margin: 0 auto; /* Centers the body element horizontally */
+            }
+        </style>
     {% endblock %}
 </head>
 <body>
@@ -20,6 +26,82 @@
     {{ encore_entry_script_tags('app') }}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script src="{{ asset('js/autocomplete.js') }}"></script>
+
+    <script>
+        function attachDeleteButtonListeners() {
+            const deleteButtons = document.querySelectorAll('.delete-weather-btn');
+            deleteButtons.forEach(function (button) {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    if (confirm('Are you sure you want to delete this weather data?')) {
+                        const responseId = event.target.getAttribute('data-response-id');
+                        fetch('{{ path('delete_weather_data') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: new URLSearchParams({
+                                'response_id': responseId
+                            })
+                        }).then(function (response) {
+                            if (response.status === 204) {
+                                const card = event.target.closest('.card');
+                                card.remove();
+                            } else {
+                                alert('An error occurred while deleting the weather data.');
+                            }
+                        }).catch(function (error) {
+                            console.error('Error:', error);
+                            alert('An error occurred while deleting the weather data.');
+                        });
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const initDatepicker = (elementId) => {
+                $(elementId).datepicker({
+                    dateFormat: "dd/mm/yy",
+                    minDate: new Date(1941, 0, 1),
+                    maxDate: "-6d",
+                });
+            };
+
+            initDatepicker("#{{ form.startDate.vars.id }}");
+            initDatepicker("#{{ form.endDate.vars.id }}");
+
+            attachDeleteButtonListeners();
+
+            const form = document.getElementById('input-form');
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                fetch('{{ path('fetch_weather') }}', {
+                    method: 'POST',
+                    body: formData
+                }).then(function (response) {
+                    return response.text();
+                }).then(function (html) {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const newWeatherData = doc.querySelector('#new_data_response .card:last-child');
+                    const accordion = document.getElementById('accordion');
+                    const importedWeatherData = document.importNode(newWeatherData, true);
+                    accordion.appendChild(importedWeatherData);
+                    attachDeleteButtonListeners();
+                }).catch(function (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching the weather data.');
+                });
+            });
+        });
+    </script>
+
 {% endblock %}
 </body>
 </html>

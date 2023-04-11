@@ -42,27 +42,44 @@ class WeatherController extends AbstractController
         $form = $this->createForm(WeatherType::class);
         $form->handleRequest($request);
 
+        $newWeatherData = null;
+        $newResponseId = null;
+
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->handleFormSubmission($form, $em, $sessionId);
+            $newResponseId[0] = $this->handleFormSubmission($form, $em, $sessionId);
+            if ($newResponseId[0] !== null) {
+                $newWeatherData = $this->getWeatherDataForResponseIds($em, $newResponseId);
+            }
         }
 
         $weather_data = $this->getWeatherDataForResponseIds($em, $responseId);
 
-        return $this->render('weather/index.html.twig', [
-            'form' => $form->createView(),
-            'weather_data' => $weather_data,
-            'response_ids' => $responseId,
-        ]);
+        if ($newResponseId !== null) {
+            return $this->render('weather/index.html.twig', [
+                'form' => $form->createView(),
+                'weather_data' => $weather_data,
+                'response_ids' => $responseId,
+                'new_weather_data' => $newWeatherData,
+                'new_response_id' => $newResponseId[0],
+            ]);
+        } else {
+            return $this->render('weather/index.html.twig', [
+                'form' => $form->createView(),
+                'weather_data' => $weather_data,
+                'response_ids' => $responseId,
+            ]);
+
+        }
     }
 
-    private function handleFormSubmission($form, EntityManagerInterface $em, string $sessionId): void
+    private function handleFormSubmission($form, EntityManagerInterface $em, string $sessionId): ?int
     {
-        $responseId = 0;
         $data = $this->fetchWeatherDataFromAPI($form);
 
         if (isset($data['daily'])) {
-            $this->saveWeatherDataToDatabase($data, $form, $em, $sessionId);
+            return $this->saveWeatherDataToDatabase($data, $form, $em, $sessionId);
         }
+        return null;
     }
 
     private function fetchWeatherDataFromAPI($form): array
@@ -86,7 +103,7 @@ class WeatherController extends AbstractController
         return ($response->getStatusCode() == 200) ? json_decode($response->getBody(), true) : [];
     }
 
-    private function saveWeatherDataToDatabase(array $data, $form, EntityManagerInterface $em, string $sessionId): void
+    private function saveWeatherDataToDatabase(array $data, $form, EntityManagerInterface $em, string $sessionId): int
     {
         $dates = $data['daily']['time'];
         $temperatureMax = $data['daily']['temperature_2m_max'];
@@ -145,6 +162,7 @@ class WeatherController extends AbstractController
             $em->persist($weatherData);
         }
         $em->flush();
+        return $responseId;
     }
 
     private function getWeatherDataForResponseIds(EntityManagerInterface $em, array $responseIds): array
@@ -162,7 +180,8 @@ class WeatherController extends AbstractController
         $weatherData = $em->getRepository(WeatherData::class)->findBy(['responseId' => $responseId]);
         $responseCommonData = $em->getRepository(ResponseCommonData::class)->find($responseId);
 
-        $city = $responseCommonData ? strstr($responseCommonData->getCity(), ',', true) : null;
+        $city = $responseCommonData ? (str_contains($responseCommonData->getCity(), ',') ? strstr($responseCommonData->getCity(), ',', true) : $responseCommonData->getCity()) : null;
+        $cityFullName = $responseCommonData->getCity();
 
         $data = [];
 
@@ -181,10 +200,13 @@ class WeatherController extends AbstractController
             if (!isset($data[$identifier])) {
                 $data[$identifier] = [
                     'city' => $city,
+                    'city_full_name' => $cityFullName,
                     'startDate' => $weather->getDate(),
                     'endDate' => $weather->getDate(),
-                    'total_avg_temp' => 0,
-                    'total_precipitation' => 0,
+                    'temp_avg_total' => 0,
+                    'precipitation_total' => 0,
+                    'temp_max_total' => PHP_INT_MIN, // Initialize temp_max_total
+                    'temp_min_total' => PHP_INT_MAX, // Initialize temp_min_total
                     'count' => 0,
                     'daily_data' => [],
                 ];
@@ -192,9 +214,12 @@ class WeatherController extends AbstractController
 
             $data[$identifier]['response_id'] = $identifier;
             $data[$identifier]['daily_data'][] = $dailyData;
-            $data[$identifier]['total_avg_temp'] += ($dailyData['temperature_avg']);
-            $data[$identifier]['total_precipitation'] += $dailyData['precipitation'];
+            $data[$identifier]['temp_avg_total'] += ($dailyData['temperature_avg']);
+            $data[$identifier]['precipitation_total'] += $dailyData['precipitation'];
             $data[$identifier]['count']++;
+
+            $data[$identifier]['temp_max_total'] = max($data[$identifier]['temp_max_total'], $dailyData['temperature_max']);
+            $data[$identifier]['temp_min_total'] = min($data[$identifier]['temp_min_total'], $dailyData['temperature_min']);
 
             if ($weather->getDate() < $data[$identifier]['startDate']) {
                 $data[$identifier]['startDate'] = $weather->getDate();
@@ -205,8 +230,8 @@ class WeatherController extends AbstractController
         }
 
         foreach ($data as $key => $value) {
-            $data[$key]['total_avg_temp'] /= $value['count'];
-            $data[$key]['total_avg_temp'] = round($data[$key]['total_avg_temp'], 2);
+            $data[$key]['temp_avg_total'] /= $value['count'];
+            $data[$key]['temp_avg_total'] = round($data[$key]['temp_avg_total'], 2);
         }
 
         return array_values($data);
@@ -249,17 +274,26 @@ class WeatherController extends AbstractController
         $weatherDataRepo = $em->getRepository(WeatherData::class);
         $activeResponseIds = $responseCommonDataRepo->findActiveResponseIds();
 
-        $queryBuilder = $weatherDataRepo->createQueryBuilder('wd')
+        $weatherDataQueryBuilder = $weatherDataRepo->createQueryBuilder('wd')
             ->delete();
-
         if (!empty($activeResponseIds)) {
-            $queryBuilder->where('wd.responseId NOT IN (:activeResponseIds)')
+            $weatherDataQueryBuilder
+                ->where('wd.responseId NOT IN (:activeResponseIds)')
                 ->setParameter('activeResponseIds', $activeResponseIds);
         }
-
-        $queryBuilder->orWhere('wd.responseId IS NULL')
+        $weatherDataQueryBuilder
+            ->orWhere('wd.responseId IS NULL')
             ->getQuery()
             ->execute();
+
+        if (!empty($activeResponseIds)) {
+            $responseCommonDataQueryBuilder = $responseCommonDataRepo->createQueryBuilder('rcd')
+                ->delete()
+                ->where('rcd.id NOT IN (:activeResponseIds)')
+                ->setParameter('activeResponseIds', $activeResponseIds)
+                ->getQuery()
+                ->execute();
+        }
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }
