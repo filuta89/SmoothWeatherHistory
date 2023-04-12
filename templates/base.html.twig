@@ -89,10 +89,25 @@
                     return response.text();
                 }).then(function (html) {
                     const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    // Get the response_id from the hidden div
+                    const newResponseId = doc.querySelector('#new_data_response .card:last-child')
+                        .querySelector('.delete-weather-btn')
+                        .getAttribute('data-response-id');
+
                     const newWeatherData = doc.querySelector('#new_data_response .card:last-child');
-                    const accordion = document.getElementById('accordion');
+
+                    const accordionId = 'accordion-' + newResponseId;
+                    const newAccordionDiv = document.createElement('div');
+                    newAccordionDiv.className = 'accordion';
+                    newAccordionDiv.id = accordionId;
+
                     const importedWeatherData = document.importNode(newWeatherData, true);
-                    accordion.appendChild(importedWeatherData);
+                    newAccordionDiv.appendChild(importedWeatherData);
+
+                    const accordion = document.getElementById('accordion');
+                    accordion.appendChild(newAccordionDiv);
+
                     attachDeleteButtonListeners();
                 }).catch(function (error) {
                     console.error('Error:', error);

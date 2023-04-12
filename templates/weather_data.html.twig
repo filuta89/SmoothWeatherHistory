@@ -1,15 +1,15 @@
 {% for weather in weather_data %}
-    <div class="accordion" id="accordion-{{ index }}">
+    <div class="accordion" id="accordion-{{ response_id }}">
         <div class="card mb-3">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <button class="btn btn-primary" title="{{ weather.city_full_name }}" data-bs-toggle="collapse" data-bs-target="#weather-{{ index }}" aria-expanded="true" aria-controls="weather-{{ index }}">
+                    <button class="btn btn-primary" title="{{ weather.city_full_name }}" data-bs-toggle="collapse" data-bs-target="#weather-{{ response_id }}" aria-expanded="true" aria-controls="weather-{{ response_id }}">
                         {{ weather.city }}: {{ weather.startDate|date('Y-m-d') }} to {{ weather.endDate|date('Y-m-d') }} - Temperature: Avg: <strong>{{ weather.temp_avg_total }}°C</strong>, Max: <strong>{{ weather.temp_max_total }}°C</strong>, Min: <strong>{{ weather.temp_min_total }}°C</strong>, Total precipitation: <strong>{{ weather.precipitation_total }} mm</strong>
                     </button>
                     <button class="btn btn-danger delete-weather-btn" data-response-id="{{ response_id }}" type="button">Delete</button>
                 </h5>
             </div>
-            <div id="weather-{{ index }}" class="collapse" aria-labelledby="heading-{{ index }}" data-bs-parent="#accordion-{{ index }}">
+            <div id="weather-{{ response_id }}" class="collapse" aria-labelledby="heading-{{ response_id }}" data-bs-parent="#accordion-{{ response_id }}">
                 <div class="card-body">
                     <table class="table table-striped">
                         <thead>

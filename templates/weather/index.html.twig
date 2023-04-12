@@ -15,20 +15,20 @@
 
     {{ form_start(form, {'attr': {'id': 'input-form', 'style': 'display: flex; flex-direction: column; align-items: center;'}}) }}
 
-        {{ form_widget(form.startDate, {'attr': {'placeholder': 'Start Date 1941 - 6 days ago'}}) }}
-        <br>
+    {{ form_widget(form.startDate, {'attr': {'placeholder': 'Start Date 1941 - 6 days ago'}}) }}
+    <br>
 
-        {{ form_widget(form.endDate, {'attr': {'placeholder': 'End Date 1941 - 6 days ago'}}) }}
-        <br>
+    {{ form_widget(form.endDate, {'attr': {'placeholder': 'End Date 1941 - 6 days ago'}}) }}
+    <br>
 
-        {{ form_widget(form.city, {'id': 'city', 'attr': {'placeholder': form.city.vars.label}}) }}
-        <br>
+    {{ form_widget(form.city, {'id': 'city', 'attr': {'placeholder': form.city.vars.label}}) }}
+    <br>
 
-        <div style="display: none;">
-            {{ form_widget(form.latitude, {'id': 'latitude', 'attr': {'placeholder': form.latitude.vars.label}}) }}
-            {{ form_widget(form.longitude, {'id': 'longitude', 'attr': {'placeholder': form.longitude.vars.label}}) }}
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+    <div style="display: none;">
+        {{ form_widget(form.latitude, {'id': 'latitude', 'attr': {'required': 'required'}}) }}
+        {{ form_widget(form.longitude, {'id': 'longitude', 'attr': {'required': 'required'}}) }}
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
 
     {{ form_end(form) }}
 
@@ -38,7 +38,6 @@
             {% set weather_data_instance = weather_data[loop.index0] %}
             {% include 'weather_data.html.twig' with {'weather_data': weather_data_instance, 'index': loop.index, 'response_id': response_id} %}
         {% endfor %}
-
     </div>
     <div id="new_data_response" style="visibility: hidden">
         {% if new_weather_data is defined and new_response_id is defined%}
