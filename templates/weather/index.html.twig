@@ -15,23 +15,22 @@
 
     {{ form_start(form, {'attr': {'id': 'input-form', 'style': 'display: flex; flex-direction: column; align-items: center;'}}) }}
 
-    {{ form_widget(form.startDate, {'attr': {'placeholder': 'Start Date 1941 - 6 days ago'}}) }}
+    {{ form_widget(form.startDate, {'attr': {'placeholder': 'start Date 1941 - 6 days ago'}}) }}
     <br>
 
-    {{ form_widget(form.endDate, {'attr': {'placeholder': 'End Date 1941 - 6 days ago'}}) }}
+    {{ form_widget(form.endDate, {'attr': {'placeholder': 'end Date 1941 - 6 days ago'}}) }}
     <br>
 
-    {{ form_widget(form.city, {'id': 'city', 'attr': {'placeholder': form.city.vars.label}}) }}
+    {{ form_widget(form.city, {'id': 'city', 'attr': {'placeholder': 'pick one of the suggestions', 'title': 'Select one of the suggested cities.'}}) }}
     <br>
 
     <div style="display: none;">
         {{ form_widget(form.latitude, {'id': 'latitude', 'attr': {'required': 'required'}}) }}
         {{ form_widget(form.longitude, {'id': 'longitude', 'attr': {'required': 'required'}}) }}
     </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" class="btn btn-primary" title="Select one of the suggested cities.">Submit</button>
 
     {{ form_end(form) }}
-
 
     <div id="accordion">
         {% for response_id in response_ids %}

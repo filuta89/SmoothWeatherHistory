@@ -16,8 +16,8 @@
                         <tr>
                             <th>Date</th>
                             <th>Average Temp(°C)</th>
-                            <th>Min Temp(°C)</th>
                             <th>Max Temp(°C)</th>
+                            <th>Min Temp(°C)</th>
                             <th>Precipitation (mm)</th>
                             <th>Max Wind Speed (km/h)</th>
                             <th>Max Wind Gusts (km/h)</th>
@@ -28,8 +28,8 @@
                             <tr>
                                 <td>{{ daily_data.date|date('Y-m-d') }}</td>
                                 <td>{{ daily_data.temperature_avg }}</td>
-                                <td>{{ daily_data.temperature_min }}</td>
                                 <td>{{ daily_data.temperature_max }}</td>
+                                <td>{{ daily_data.temperature_min }}</td>
                                 <td>{{ daily_data.precipitation }}</td>
                                 <td>{{ daily_data.wind_speed_max }}</td>
                                 <td>{{ daily_data.wind_gusts_max }}</td>
