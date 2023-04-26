@@ -57,11 +57,11 @@
                         const card = event.target.closest('.card');
                         card.remove();
                     } else {
-                        alert('An error occurred while deleting the weather data.');
+                        alert('An error occurred while deleting the weather data.a');
                     }
                 }).catch(function (error) {
                     console.error('Error:', error);
-                    alert('An error occurred while deleting the weather data.');
+                    alert('An error occurred while deleting the weather data.b');
                 });
             } else {
                 // The user clicked 'No', so stop propagation of the event
@@ -116,7 +116,7 @@
                     attachDeleteButtonListeners();
                 }).catch(function (error) {
                     console.error('Error:', error);
-                    alert('An error occurred while fetching the weather data.');
+                    alert('An error occurred while fetching the weather data.c');
                 });
             });
         });
