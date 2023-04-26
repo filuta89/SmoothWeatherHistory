@@ -96,24 +96,28 @@
                 }).then(function (html) {
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                    const newResponseId = doc.querySelector('#new_data_response .card:last-child')
-                        .querySelector('.delete-weather-btn')
-                        .getAttribute('data-response-id');
+                    const newDataResponse = doc.querySelector('#new_data_response');
 
-                    const newWeatherData = doc.querySelector('#new_data_response .card:last-child');
+                    if (newDataResponse && newDataResponse.querySelector('.card')) {
+                        const newResponseCard = newDataResponse.querySelector('.card:last-child');
+                        const newResponseId = newResponseCard.querySelector('.delete-weather-btn')
+                            .getAttribute('data-response-id');
 
-                    const accordionId = 'accordion-' + newResponseId;
-                    const newAccordionDiv = document.createElement('div');
-                    newAccordionDiv.className = 'accordion';
-                    newAccordionDiv.id = accordionId;
+                        const newWeatherData = newResponseCard;
 
-                    const importedWeatherData = document.importNode(newWeatherData, true);
-                    newAccordionDiv.appendChild(importedWeatherData);
+                        const accordionId = 'accordion-' + newResponseId;
+                        const newAccordionDiv = document.createElement('div');
+                        newAccordionDiv.className = 'accordion';
+                        newAccordionDiv.id = accordionId;
 
-                    const accordion = document.getElementById('accordion');
-                    accordion.appendChild(newAccordionDiv);
+                        const importedWeatherData = document.importNode(newWeatherData, true);
+                        newAccordionDiv.appendChild(importedWeatherData);
 
-                    attachDeleteButtonListeners();
+                        const accordion = document.getElementById('accordion');
+                        accordion.appendChild(newAccordionDiv);
+
+                        attachDeleteButtonListeners();
+                    }
                 }).catch(function (error) {
                     console.error('Error:', error);
                     alert('An error occurred while fetching the weather data.c');
