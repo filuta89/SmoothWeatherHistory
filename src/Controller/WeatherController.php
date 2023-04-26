@@ -102,7 +102,7 @@ class WeatherController extends AbstractController
     private function fetchWeatherDataFromAPI($form): array
     {
         try {
-            $client = new Client(['verify' => false]);
+            $client = new Client(['verify' => true]);
 
             $latitude = number_format($form->get('latitude')->getData(), 2);
             $longitude = number_format($form->get('longitude')->getData(), 2);
