@@ -59,17 +59,16 @@ class WeatherController extends AbstractController
             if ($form->isSubmitted() && $form->isValid()) {
                 try {
                     $newResponseId[0] = $this->handleFormSubmission($form, $em, $sessionId);
-                    if ($newResponseId[0] !== null) {$newWeatherData = $this->getWeatherDataForResponseIds($em, $newResponseId);
-                    }
+                    $newWeatherData = $this->getWeatherDataForResponseIds($em, $newResponseId);
                 } catch (\Exception $e) {
-                    $error_message = 'An error occurred while handling the form submission: ' . $e->getMessage();
+                    $error_message = 'An error occurred while displaying new response: ' . $e->getMessage();
                     $this->render('error.html.twig', ['error_message' => $error_message]);
                 }
             }
 
             $weather_data = $this->getWeatherDataForResponseIds($em, $responseId);
 
-            if ($newResponseId !== null) {
+            if (isset($newResponseId)) {
                 return $this->render('weather/index.html.twig', [
                     'form' => $form->createView(),
                     'weather_data' => $weather_data,
