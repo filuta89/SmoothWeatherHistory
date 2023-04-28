@@ -98,7 +98,7 @@
                 }).then(function (html) {
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                    console.log(doc.documentElement);
+                    console.log(doc.documentElement.outerHTML);
                     console.log('fetch request response from server received.');
 
                     const newDataResponse = doc.querySelector('#new_data_response');
