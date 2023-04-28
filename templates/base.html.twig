@@ -99,6 +99,7 @@
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
                     console.log('fetch request response from server received.');
+                    console.log(doc);
 
                     const newDataResponse = doc.querySelector('#new_data_response');
 
