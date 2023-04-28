@@ -81,6 +81,8 @@
             initDatepicker("#{{ form.startDate.vars.id }}");
             initDatepicker("#{{ form.endDate.vars.id }}");
 
+            console.log('datepickers were initiated.');
+
             attachDeleteButtonListeners();
 
             const form = document.getElementById('input-form');
@@ -96,12 +98,16 @@
                 }).then(function (html) {
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
+                    console.log('fetch request response from server received.');
+
                     const newDataResponse = doc.querySelector('#new_data_response');
 
                     if (newDataResponse && newDataResponse.querySelector('.card')) {
                         const newResponseCard = newDataResponse.querySelector('.card:last-child');
                         const newResponseId = newResponseCard.querySelector('.delete-weather-btn')
                             .getAttribute('data-response-id');
+
+                        console.log('#new_data_response .card was found.');
 
                         const newWeatherData = newResponseCard;
 
