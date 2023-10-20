@@ -19,9 +19,6 @@
 /phpunit.xml
 ###< symfony/phpunit-bridge ###
 
-# Ignore .env.local file
-.env.local
-
 ###> symfony/webpack-encore-bundle ###
 /node_modules/
 /public/build/

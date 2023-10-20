@@ -70,6 +70,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('input-form');
+            
             const initDatepicker = (elementId) => {
                 $(elementId).datepicker({
                     dateFormat: "dd/mm/yy",
@@ -85,7 +87,6 @@
 
             attachDeleteButtonListeners();
 
-            const form = document.getElementById('input-form');
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
 
