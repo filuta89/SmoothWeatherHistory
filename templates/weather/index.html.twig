@@ -95,7 +95,8 @@
             document.addEventListener('DOMContentLoaded', function () {
                 const form = document.getElementById('input-form');
 
-                console.log(form);
+                console.log('---form---');
+                console.log(form.outerHTML);
                 
                 const initDatepicker = (elementId) => {
                     $(elementId).datepicker({
@@ -151,7 +152,7 @@
 
                             attachDeleteButtonListeners();
                         } else {
-
+                            console.log('#new_data_response .card was NOT found.');
                         }
                     }).catch(function (error) {
                         console.error('Error:', error);
