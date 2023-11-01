@@ -130,6 +130,9 @@
 
                         const newDataResponse = doc.querySelector('#new_data_response');
 
+                        console.log('---newDataResponse---');
+                        console.log(newDataResponse.outerHTML);
+
                         if (newDataResponse && newDataResponse.querySelector('.card')) {
                             const newResponseCard = newDataResponse.querySelector('.card:last-child');
                             const newResponseId = newResponseCard.querySelector('.delete-weather-btn')
