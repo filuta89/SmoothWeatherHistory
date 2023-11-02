@@ -35,13 +35,13 @@
     <div id="accordion">
         {% for response_id in response_ids %}
             {% set weather_data_instance = weather_data[loop.index0] %}
-            {% include 'weather_data.html.twig' with {'weather_data': weather_data_instance, 'index': loop.index, 'response_id': response_id} %}
+            {% include 'weatherData.html.twig' with {'weather_data': weather_data_instance, 'index': loop.index, 'response_id': response_id} %}
         {% endfor %}
     </div>
     <div id="new_data_response" style="display: none">
         {% if new_weather_data is defined and new_response_id is defined%}
             {% set new_weather_data_instance = new_weather_data[0] %}
-            {% include 'weather_data.html.twig' with {'weather_data': new_weather_data_instance, 'index': 0, 'response_id': new_response_id} %}
+            {% include 'weatherData.html.twig' with {'weather_data': new_weather_data_instance, 'index': 0, 'response_id': new_response_id} %}
         {% endif %}
     </div>
     

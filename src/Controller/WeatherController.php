@@ -77,7 +77,7 @@ class WeatherController extends AbstractController
 
             $weather_data = $this->getWeatherDataForResponseIds($em, $responseId);
 
-           $logger->info('----------------------------$weather_data------------------------>' . print_r($weather_data, true));
+            $logger->info('----------------------------$weather_data------------------------>' . print_r($weather_data, true));
 
             if (isset($newResponseId)) {
                 return $this->render('index.html.twig', [
@@ -204,6 +204,7 @@ class WeatherController extends AbstractController
 
             $em->flush();
             return $responseId;
+
         } catch (UniqueConstraintViolationException $e) {
             $error_message = 'Failed to save weather data to database. Failed to insert a duplicate value in a unique column of the database: ' . $e->getMessage();
             $this->render('error.html.twig', ['error_message' => $error_message]);
@@ -301,6 +302,7 @@ class WeatherController extends AbstractController
             }
 
             return array_values($data);
+            
         } catch (\Exception $e) {
             $error_message = 'Error while trying to fetch data from database to view: ' . $e->getMessage();
             $this->render('error.html.twig', ['error_message' => $error_message]);
