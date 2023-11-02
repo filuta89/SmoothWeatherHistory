@@ -80,7 +80,7 @@ class WeatherController extends AbstractController
            $logger->info('----------------------------$weather_data------------------------>' . print_r($weather_data, true));
 
             if (isset($newResponseId)) {
-                return $this->render('weather/index.html.twig', [
+                return $this->render('index.html.twig', [
                     'form' => $form->createView(),
                     'weather_data' => $weather_data,
                     'response_ids' => $responseId,
@@ -88,7 +88,7 @@ class WeatherController extends AbstractController
                     'new_response_id' => $newResponseId[0],
                 ]);
             } else {
-                return $this->render('weather/index.html.twig', [
+                return $this->render('index.html.twig', [
                     'form' => $form->createView(),
                     'weather_data' => $weather_data,
                     'response_ids' => $responseId,
