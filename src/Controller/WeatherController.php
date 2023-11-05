@@ -65,9 +65,12 @@ class WeatherController extends AbstractController
                     $newResponseId[0] = $this->handleFormSubmission($form, $em, $sessionId);
                     $newWeatherData = $this->getWeatherDataForResponseIds($em, $newResponseId);
 
-                   $logger->info('----------------------------$newResponseId------------------------>' . print_r($newResponseId[0], true));
+                    $logger->info('----------------------------$newResponseId------------------------>' . print_r($newResponseId[0], true));
+                    $logger->info('----------------------------$newWeatherData----------------------------');
 
-                   $logger->info('----------------------------$newWeatherData------------------------>' . print_r($newWeatherData, true));
+                    foreach ($newWeatherData[0] as $newWeatherDataByCell) {
+                        $logger->info('---' . print_r($newWeatherDataByCell, true));
+                    }
 
                 } catch (\Exception $e) {
                     $error_message = 'An error occurred while displaying new response: ' . $e->getMessage();
@@ -77,17 +80,26 @@ class WeatherController extends AbstractController
 
             $weather_data = $this->getWeatherDataForResponseIds($em, $responseId);
 
-            $logger->info('----------------------------$weather_data------------------------>' . print_r($weather_data, true));
+            $logger->info('----------------------------$weather_data----------------------------');
+            foreach ($weather_data as $weatherDataByDay) {
+                $logger->info('---day');
+                foreach($weatherDataByDay as $weatherDataByDayByCell) {
+                    $logger->info(print_r($weatherDataByDayByCell, true));
+                }
+            }
 
             if (isset($newResponseId)) {
+                $logger->info('---index.html.twig with new response is being rendered');
                 return $this->render('index.html.twig', [
                     'form' => $form->createView(),
                     'weather_data' => $weather_data,
                     'response_ids' => $responseId,
                     'new_weather_data' => $newWeatherData,
                     'new_response_id' => $newResponseId[0],
+                    
                 ]);
             } else {
+                $logger->info('index.html.twig without without new response is being rendered');
                 return $this->render('index.html.twig', [
                     'form' => $form->createView(),
                     'weather_data' => $weather_data,
@@ -302,7 +314,7 @@ class WeatherController extends AbstractController
             }
 
             return array_values($data);
-            
+
         } catch (\Exception $e) {
             $error_message = 'Error while trying to fetch data from database to view: ' . $e->getMessage();
             $this->render('error.html.twig', ['error_message' => $error_message]);
