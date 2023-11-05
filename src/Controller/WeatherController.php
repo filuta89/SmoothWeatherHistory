@@ -68,8 +68,8 @@ class WeatherController extends AbstractController
                     $logger->info('----------------------------$newResponseId------------------------>' . print_r($newResponseId[0], true));
                     $logger->info('----------------------------$newWeatherData----------------------------');
 
-                    foreach ($newWeatherData[0] as $newWeatherDataByCell) {
-                        $logger->info('---' . print_r($newWeatherDataByCell, true));
+                    foreach ($newWeatherData[0] as $key => $value) {
+                        $logger->info(print_r($key, true) . "=>" . print_r($value, true));
                     }
 
                 } catch (\Exception $e) {
@@ -83,8 +83,8 @@ class WeatherController extends AbstractController
             $logger->info('----------------------------$weather_data----------------------------');
             foreach ($weather_data as $weatherDataByDay) {
                 $logger->info('---day');
-                foreach($weatherDataByDay as $weatherDataByDayByCell) {
-                    $logger->info(print_r($weatherDataByDayByCell, true));
+                foreach($weatherDataByDay as $key => $value) {
+                    $logger->info(print_r($key, true) . "=>" . print_r($value, true));
                 }
             }
 
