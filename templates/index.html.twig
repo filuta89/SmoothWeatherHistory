@@ -10,26 +10,31 @@
 
 {% block body %}
 
-
     <h1 style="display: flex; justify-content: center;">Smooth Weather History</h1>
 
+    <h6 style="display: flex; justify-content: center;">All data are taken from open-meteo.com archive.</h6>
+    <h7 style="display: flex; justify-content: center;">Choose date interval from 01/01/1941 to today minus 6 days and a location out of available list.</h7>
+    <h7 style="display: flex; justify-content: center;">Type atleast 3 characters in the city field to view list of suggestions and select one of those.</h7>
+
+    <br>
     {{ form_start(form, {'attr': {'id': 'input-form', 'style': 'display: flex; flex-direction: column; align-items: center;'}}) }}
 
-    {{ form_widget(form.startDate, {'attr': {'placeholder': 'start Date 1941 - 6 days ago'}}) }}
+    {{ form_widget(form.startDate, {'attr': {'placeholder': 'start Date - dd/mm/yyyy'}}) }}
     <br>
 
-    {{ form_widget(form.endDate, {'attr': {'placeholder': 'end Date 1941 - 6 days ago'}}) }}
+    {{ form_widget(form.endDate, {'attr': {'placeholder': 'end Date - dd/mm/yyyy'}}) }}
     <br>
 
-    {{ form_widget(form.city, {'id': 'city', 'attr': {'placeholder': 'pick one of the suggestions', 'title': 'Select one of the suggested cities.'}}) }}
+    {{ form_widget(form.city, {'id': 'city', 'attr': {'placeholder': 'city - type atleast 3 letters', 'title': 'Type atleast 3 characters in the city field to view list of suggestions and select one of those.'}}) }}
     <br>
 
     <div style="display: none;">
         {{ form_widget(form.latitude, {'id': 'latitude', 'attr': {'required': 'required'}}) }}
         {{ form_widget(form.longitude, {'id': 'longitude', 'attr': {'required': 'required'}}) }}
     </div>
-    <button type="submit" class="btn btn-primary" title="Select one of the suggested cities.">Submit</button>
 
+    <button type="submit" class="btn btn-primary" title="Type atleast 3 characters in the city field to view list of suggestions and select one of those.">Submit</button>
+    <br>
     {{ form_end(form) }}
 
     <div id="accordion">
@@ -45,6 +50,10 @@
         {% endif %}
     </div>
     
+    <div id="footer" class="pt-2 mt-2 border-top">
+        <h7 style="display: flex; justify-content: center;">Assembled by Zbyněk Šulc ©2023</h7>
+    </div>
+
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
