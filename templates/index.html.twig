@@ -12,9 +12,10 @@
 
     <h1 style="display: flex; justify-content: center;">Smooth Weather History</h1>
 
-    <h6 style="display: flex; justify-content: center;">All data are taken from open-meteo.com archive.</h6>
-    <h7 style="display: flex; justify-content: center;">Choose date interval from 01/01/1941 to today minus 6 days and a location out of available list.</h7>
-    <h7 style="display: flex; justify-content: center;">Type atleast 3 characters in the city field to view list of suggestions and select one of those.</h7>
+    <h6 style="display: flex; justify-content: center;">Choose a date interval from 01/01/1941 to today minus 6 days and a location out of available list.</h6>
+    <h6 style="display: flex; justify-content: center;">Type atleast 3 characters in the city field to view list of suggestions and select one of those.</h6>
+    <h7 style="display: flex; justify-content: center;">The list of cities and its geographical coordinates are taken from geocode.arcgis.com.</h7>
+    <h7 style="display: flex; justify-content: center;">The date interval and the city's coordinates are then fed to open-meteo.com archive api request.</h7>
 
     <br>
     {{ form_start(form, {'attr': {'id': 'input-form', 'style': 'display: flex; flex-direction: column; align-items: center;'}}) }}
@@ -104,8 +105,8 @@
             document.addEventListener('DOMContentLoaded', function () {
                 const form = document.getElementById('input-form');
 
-                console.log('---form---');
-                console.log(form.outerHTML);
+                // console.log('---form---');
+                // console.log(form.outerHTML);
                 
                 const initDatepicker = (elementId) => {
                     $(elementId).datepicker({
@@ -118,7 +119,7 @@
                 initDatepicker("#{{ form.startDate.vars.id }}");
                 initDatepicker("#{{ form.endDate.vars.id }}");
 
-                console.log('datepickers were initiated.');
+                // console.log('datepickers were initiated.');
 
                 attachDeleteButtonListeners();
 
@@ -134,20 +135,20 @@
                     }).then(function (html) {
                         const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                        console.log(doc.documentElement.outerHTML);
-                        console.log('fetch request response from server received.');
+                        // console.log(doc.documentElement.outerHTML);
+                        // console.log('fetch request response from server received.');
 
                         const newDataResponse = doc.querySelector('#new_data_response');
 
-                        console.log('---newDataResponse---');
-                        console.log(newDataResponse.outerHTML);
+                        // console.log('---newDataResponse---');
+                        // console.log(newDataResponse.outerHTML);
 
                         if (newDataResponse && newDataResponse.querySelector('.card')) {
                             const newResponseCard = newDataResponse.querySelector('.card:last-child');
                             const newResponseId = newResponseCard.querySelector('.delete-weather-btn')
                                 .getAttribute('data-response-id');
 
-                            console.log('#new_data_response .card was found.');
+                            // console.log('#new_data_response .card was found.');
 
                             const newWeatherData = newResponseCard;
 
@@ -164,7 +165,7 @@
 
                             attachDeleteButtonListeners();
                         } else {
-                            console.log('#new_data_response .card was NOT found.');
+                            // console.log('#new_data_response .card was NOT found.');
                         }
                     }).catch(function (error) {
                         console.error('Error:', error);
